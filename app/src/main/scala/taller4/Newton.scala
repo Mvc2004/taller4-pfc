@@ -1,21 +1,16 @@
-package taller4
+  package taller4
 
-sealed trait Expr
-case class Numero(d: Double) extends Expr
-case class Atomo(x: Char) extends Expr
-case class Suma(e1: Expr, e2: Expr) extends Expr
-case class Prod(e1: Expr, e2: Expr) extends Expr
-case class Resta(e1: Expr, e2: Expr) extends Expr
-case class Div(e1: Expr, e2: Expr) extends Expr
-case class Expo(e1: Expr, e2: Expr) extends Expr
-case class Logaritmo(e1: Expr) extends Expr
-
-class Newton {
-
+  sealed trait Expr
+  case class Numero(d: Double) extends Expr
+  case class Atomo(x: Char) extends Expr
+  case class Suma(e1: Expr, e2: Expr) extends Expr
+  case class Prod(e1: Expr, e2: Expr) extends Expr
+  case class Resta(e1: Expr, e2: Expr) extends Expr
+  case class Div(e1: Expr, e2: Expr) extends Expr
+  case class Expo(e1: Expr, e2: Expr) extends Expr
+  case class Logaritmo(e1: Expr) extends Expr
 
   class Newton {
-
-    type Funcion = Double => Double
 
     def evaluar(f: Expr, a: Atomo, v: Double): Double = f match {
       case Numero(d) => d
@@ -109,7 +104,6 @@ class Newton {
       case Logaritmo(e1) => Logaritmo(reconocerPatrones(e1))
       case _ => f
     }
-
     def raizNewton(f: Expr, a: Atomo, x0: Double, ba: (Expr, Atomo, Double) => Boolean, maxIter: Int = 100): Double = {
       def buenAprox(x: Double): Boolean = ba(f, a, x)
 
@@ -122,4 +116,6 @@ class Newton {
       if (!buenAprox(xi)) throw new ArithmeticException("Failed to converge")
       xi
     }
-  }}
+  }
+
+
