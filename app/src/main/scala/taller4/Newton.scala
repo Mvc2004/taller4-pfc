@@ -1,121 +1,59 @@
-  package taller4
+package taller4
 
-  sealed trait Expr
-  case class Numero(d: Double) extends Expr
-  case class Atomo(x: Char) extends Expr
-  case class Suma(e1: Expr, e2: Expr) extends Expr
-  case class Prod(e1: Expr, e2: Expr) extends Expr
-  case class Resta(e1: Expr, e2: Expr) extends Expr
-  case class Div(e1: Expr, e2: Expr) extends Expr
-  case class Expo(e1: Expr, e2: Expr) extends Expr
-  case class Logaritmo(e1: Expr) extends Expr
+sealed trait Expr
+case class Numero(d: Double) extends Expr
+case class Atomo(x: Char) extends Expr
+case class Suma(e1: Expr, e2: Expr) extends Expr
+case class Prod(e1: Expr, e2: Expr) extends Expr
+case class Resta(e1: Expr, e2: Expr) extends Expr
+case class Div(e1: Expr, e2: Expr) extends Expr
+case class Expo(e1: Expr, e2: Expr) extends Expr
+case class Logaritmo(e1: Expr) extends Expr
 
-  class Newton {
+class Newton {
 
-    def evaluar(f: Expr, a: Atomo, v: Double): Double = f match {
-      case Numero(d) => d
-      case Atomo(x) => if (x == a.x) v else throw new IllegalArgumentException(s"Unbound atom: $x")
-      case Suma(e1, e2) => evaluar(e1, a, v) + evaluar(e2, a, v)
-      case Prod(e1, e2) => evaluar(e1, a, v) * evaluar(e2, a, v)
-      case Resta(e1, e2) => evaluar(e1, a, v) - evaluar(e2, a, v)
-      case Div(e1, e2) => {
-        val denom = evaluar(e2, a, v)
-        if (denom == 0) throw new ArithmeticException("Division by zero")
-        evaluar(e1, a, v) / denom
-      }
-      case Expo(e1, e2) => Math.pow(evaluar(e1, a, v), evaluar(e2, a, v))
-      case Logaritmo(e1) => {
-        val arg = evaluar(e1, a, v)
-        if (arg <= 0) throw new ArithmeticException("Logarithm of non-positive number")
-        Math.log(arg)
-      }
-    }
-
-    def derivar(f: Expr, a: Atomo): Expr = f match {
-      case Numero(_) => Numero(0.0)
-      case Atomo(x) => if (x == a.x) Numero(1.0) else Numero(0.0)
-      case Suma(e1, e2) => Suma(derivar(e1, a), derivar(e2, a))
-      case Prod(e1, e2) => Suma(Prod(derivar(e1, a), e2), Prod(e1, derivar(e2, a)))
-      case Resta(e1, e2) => Resta(derivar(e1, a), derivar(e2, a))
-      case Div(e1, e2) => Div(Resta(Prod(derivar(e1, a), e2), Prod(e1, derivar(e2, a))), Prod(e2, e2))
-      case Expo(e1, e2) => Prod(Expo(e1, e2), Suma(Prod(derivar(e2, a), Logaritmo(e1)), Prod(e2, derivar(e1, a))))
-      case Logaritmo(e1) => Div(derivar(e1, a), e1)
-    }
-
-    def newton(f: Expr, a: Atomo, x0: Double, epsilon: Double, maxIter: Int = 100): Double = {
-      def buenAprox(x: Double): Boolean = Math.abs(evaluar(f, a, x)) < epsilon
-
-      var xi = x0
-      var iter = 0
-      while (!buenAprox(xi) && iter < maxIter) {
-        xi = xi - evaluar(f, a, xi) / evaluar(derivar(f, a), a, xi)
-        iter += 1
-      }
-      if (!buenAprox(xi)) throw new ArithmeticException("Failed to converge")
-      xi
-    }
-
-    def mostrar(e: Expr): String = e match {
-      case Numero(d) => d.toString
-      case Atomo(x) => x.toString
-      case Suma(e1, e2) => s"(${mostrar(e1)} + ${mostrar(e2)})"
-      case Prod(e1, e2) => s"(${mostrar(e1)} * ${mostrar(e2)})"
-      case Resta(e1, e2) => s"(${mostrar(e1)} - ${mostrar(e2)})"
-      case Div(e1, e2) => s"(${mostrar(e1)} / ${mostrar(e2)})"
-      case Expo(e1, e2) => s"(${mostrar(e1)} ^ ${mostrar(e2)})"
-      case Logaritmo(e1) => s"lg(${mostrar(e1)})"
-    }
-
-    def limpiar(f: Expr): Expr = f match {
-      case Suma(e1, Numero(0.0)) => limpiar(e1)
-      case Suma(Numero(0.0), e2) => limpiar(e2)
-      case Resta(e1, Numero(0.0)) => limpiar(e1)
-      case Prod(e1, Numero(1.0)) => limpiar(e1)
-      case Prod(Numero(1.0), e2) => limpiar(e2)
-      case Prod(_, Numero(0.0)) => Numero(0.0)
-      case Prod(Numero(0.0), _) => Numero(0.0)
-      case Div(e1, Numero(1.0)) => limpiar(e1)
-      case Expo(_, Numero(0.0)) => Numero(1.0)
-      case Expo(e1, Numero(1.0)) => limpiar(e1)
-      case Suma(e1, e2) => Suma(limpiar(e1), limpiar(e2))
-      case Resta(e1, e2) => Resta(limpiar(e1), limpiar(e2))
-      case Prod(e1, e2) => Prod(limpiar(e1), limpiar(e2))
-      case Div(e1, e2) => Div(limpiar(e1), limpiar(e2))
-      case Expo(e1, e2) => Expo(limpiar(e1), limpiar(e2))
-      case Logaritmo(e1) => Logaritmo(limpiar(e1))
-      case _ => f
-    }
-
-    def reconocerPatrones(f: Expr): Expr = f match {
-      case Suma(e1, Numero(0.0)) => reconocerPatrones(e1)
-      case Suma(Numero(0.0), e2) => reconocerPatrones(e2)
-      case Prod(e1, Numero(1.0)) => reconocerPatrones(e1)
-      case Prod(Numero(1.0), e2) => reconocerPatrones(e2)
-      case Prod(_, Numero(0.0)) => Numero(0.0)
-      case Prod(Numero(0.0), _) => Numero(0.0)
-      case Div(e1, Numero(1.0)) => reconocerPatrones(e1)
-      case Expo(_, Numero(0.0)) => Numero(1.0)
-      case Expo(e1, Numero(1.0)) => reconocerPatrones(e1)
-      case Suma(e1, e2) => Suma(reconocerPatrones(e1), reconocerPatrones(e2))
-      case Resta(e1, e2) => Resta(reconocerPatrones(e1), reconocerPatrones(e2))
-      case Prod(e1, e2) => Prod(reconocerPatrones(e1), reconocerPatrones(e2))
-      case Div(e1, e2) => Div(reconocerPatrones(e1), reconocerPatrones(e2))
-      case Expo(e1, e2) => Expo(reconocerPatrones(e1), reconocerPatrones(e2))
-      case Logaritmo(e1) => Logaritmo(reconocerPatrones(e1))
-      case _ => f
-    }
-    def raizNewton(f: Expr, a: Atomo, x0: Double, ba: (Expr, Atomo, Double) => Boolean, maxIter: Int = 100): Double = {
-      def buenAprox(x: Double): Boolean = ba(f, a, x)
-
-      var xi = x0
-      var iter = 0
-      while (!buenAprox(xi) && iter < maxIter) {
-        xi = xi - evaluar(f, a, xi) / evaluar(derivar(f, a), a, xi)
-        iter += 1
-      }
-      if (!buenAprox(xi)) throw new ArithmeticException("Failed to converge")
-      xi
-    }
+  def eval(expr: Expr, vars: Map[Char, Double]): Double = expr match {
+    case Numero(d) => d
+    case Atomo(x) => vars(x)
+    case Suma(e1, e2) => eval(e1, vars) + eval(e2, vars)
+    case Prod(e1, e2) => eval(e1, vars) * eval(e2, vars)
+    case Resta(e1, e2) => eval(e1, vars) - eval(e2, vars)
+    case Div(e1, e2) => eval(e1, vars) / eval(e2, vars)
+    case Expo(e1, e2) => Math.pow(eval(e1, vars), eval(e2, vars))
+    case Logaritmo(e1) => Math.log(eval(e1, vars))
   }
 
+  def derive(expr: Expr, variable: Char): Expr = expr match {
+    case Numero(_) => Numero(0)
+    case Atomo(x) if x == variable => Numero(1)
+    case Atomo(_) => Numero(0)
+    case Suma(e1, e2) => Suma(derive(e1, variable), derive(e2, variable))
+    case Resta(e1, e2) => Resta(derive(e1, variable), derive(e2, variable))
+    case Prod(e1, e2) => Suma(Prod(derive(e1, variable), e2), Prod(e1, derive(e2, variable)))
+    case Div(e1, e2) => Div(Resta(Prod(derive(e1, variable), e2), Prod(e1, derive(e2, variable))), Prod(e2, e2))
+    case Expo(e1, Numero(d)) => Prod(Prod(Numero(d), Expo(e1, Numero(d - 1))), derive(e1, variable))
+    case Expo(e1, e2) => Prod(Expo(e1, e2), Suma(Prod(derive(e1, variable), Div(e2, e1)), Prod(Logaritmo(e1), derive(e2, variable))))
+    case Logaritmo(e1) => Div(derive(e1, variable), e1)
+  }
+
+  def newton(expr: Expr, variable: Char, x0: Double, tolerance: Double = 1e-7, maxIter: Int = 1000): Option[Double] = {
+    def iter(xi: Double, iterCount: Int): Option[Double] = {
+      val fxi = eval(expr, Map(variable -> xi)) // Evalúa la función en xi
+      if (Math.abs(fxi) < tolerance) { // Comprueba si estamos cerca de la raíz
+        Some(xi) // Si sí, devuelve la raíz encontrada
+      } else if (iterCount >= maxIter) { // Comprueba si hemos alcanzado el número máximo de iteraciones
+        None // Si sí, devuelve None indicando que no se encontró la raíz en las iteraciones permitidas
+      } else {
+        val dfxi = eval(derive(expr, variable), Map(variable -> xi)) // Calcula la derivada en xi
+        if (dfxi == 0) {
+          None // Si la derivada es cero, el método no converge
+        } else {
+          val xi1 = xi - fxi / dfxi // Calcula el siguiente punto según el método de Newton
+          iter(xi1, iterCount + 1) // Llama recursivamente a iter con el nuevo punto y el contador de iteraciones incrementado
+        }
+      }
+    }
+
+    iter(x0, 0) // Inicia el proceso de iteraciones con la aproximación inicial x0
+  } }
 
