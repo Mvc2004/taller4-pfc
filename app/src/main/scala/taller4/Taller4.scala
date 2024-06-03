@@ -1,6 +1,7 @@
 /**
   * Taller 3 - Programación Funcional
-  * Autores: <Estudiantes>
+  * Autores: < Merly Velasquez Cortez - 2266016
+ *             Sofia Castillo Giraldo - 2266149 >
   * Profesor: Carlos A Delgado
   */
 package taller4
