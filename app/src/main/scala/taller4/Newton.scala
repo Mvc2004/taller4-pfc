@@ -1,7 +1,5 @@
 package taller4
 
-
-
 sealed trait Expr
 case class Numero(d: Double) extends Expr
 case class Atomo(x: Char) extends Expr
@@ -14,9 +12,7 @@ case class Logaritmo(e1: Expr) extends Expr
 
 class Newton {
 
-  //type funcion = Double => Double
-
-  private def evaluar(f: Expr, a: Atomo, v: Double): Double = f match {
+  def evaluar(f: Expr, a: Atomo, v: Double): Double = f match {
     case Numero(d) => d
     case Atomo(x) => if (x == a.x) v else throw new IllegalArgumentException(s"Átomo no asignado: $x")
     case Suma(e1, e2) => evaluar(e1, a, v) + evaluar(e2, a, v)
@@ -26,16 +22,14 @@ class Newton {
       val denom = evaluar(e2, a, v)
       if (denom == 0) throw new ArithmeticException("División por cero")
       evaluar(e1, a, v) / denom
-
     case Expo(e1, e2) => Math.pow(evaluar(e1, a, v), evaluar(e2, a, v))
     case Logaritmo(e1) =>
       val arg = evaluar(e1, a, v)
       if (arg <= 0) throw new ArithmeticException("Logaritmo de número no positivo")
       Math.log(arg)
-
   }
 
-  private def derivar(f: Expr, a: Atomo): Expr = f match {
+  def derivar(f: Expr, a: Atomo): Expr = f match {
     case Numero(_) => Numero(0.0)
     case Atomo(x) => if (x == a.x) Numero(1.0) else Numero(0.0)
     case Suma(e1, e2) => Suma(derivar(e1, a), derivar(e2, a))
@@ -46,19 +40,21 @@ class Newton {
     case Logaritmo(e1) => Div(derivar(e1, a), e1)
   }
 
-  def newton(f: Expr, a: Atomo, x0: Double, epsilon: Double, maxIter: Int = 100): Double = {
-
+  def newton(f: Expr, a: Atomo, x0: Double, epsilon: Double, maxIter: Int = 10000000): Option[Double] = {
     def buenAprox(x: Double): Boolean = Math.abs(evaluar(f, a, x)) < epsilon
 
     var xi = x0
     var iter = 0
 
     while (!buenAprox(xi) && iter < maxIter) {
-      xi = xi - evaluar(f, a, xi) / evaluar(derivar(f, a), a, xi)
+      try {
+        xi = xi - evaluar(f, a, xi) / evaluar(derivar(f, a), a, xi)
+      } catch {
+        case _: ArithmeticException => return None
+      }
       iter += 1
     }
-    if (!buenAprox(xi)) throw new ArithmeticException("No se logró converger")
-    xi
+    Some(xi).filter(buenAprox)
   }
 
   def mostrar(e: Expr): String = e match {
@@ -72,7 +68,7 @@ class Newton {
     case Logaritmo(e1) => s"log(${mostrar(e1)})"
   }
 
-  private def limpiar(f: Expr): Expr = f match {
+  def limpiar(f: Expr): Expr = f match {
     case Suma(e1, Numero(0.0)) => limpiar(e1)
     case Suma(Numero(0.0), e2) => limpiar(e2)
     case Resta(e1, Numero(0.0)) => limpiar(e1)
@@ -90,4 +86,5 @@ class Newton {
     case Expo(e1, e2) => Expo(limpiar(e1), limpiar(e2))
     case Logaritmo(e1) => Logaritmo(limpiar(e1))
     case _ => f
-  }}
+  }
+}
