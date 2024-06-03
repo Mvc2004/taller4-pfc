@@ -1,5 +1,7 @@
 package taller4
 
+import scala.annotation.tailrec
+
 sealed trait Expr
 case class Numero(d: Double) extends Expr
 case class Atomo(x: Char) extends Expr
