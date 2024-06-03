@@ -36,7 +36,7 @@ class Newton {
     case Logaritmo(e1) => Div(derive(e1, variable), e1)
   }
 
-  def newton(expr: Expr, variable: Char, x0: Double, tolerance: Double = 1e-7, maxIter: Int = 1000): Option[Double] = {
+  def newton(expr: Expr, variable: Char, x0: Double, tolerance: Double = 1e-12, maxIter: Int = 100000): Option[Double] = {
     def iter(xi: Double, iterCount: Int): Option[Double] = {
       val fxi = eval(expr, Map(variable -> xi)) // Evalúa la función en xi
       if (Math.abs(fxi) < tolerance) { // Comprueba si estamos cerca de la raíz
@@ -55,5 +55,7 @@ class Newton {
     }
 
     iter(x0, 0) // Inicia el proceso de iteraciones con la aproximación inicial x0
-  } }
+  }
+}
+
 
