@@ -38,21 +38,22 @@ class Newton {
 
   def newton(expr: Expr, variable: Char, x0: Double, tolerance: Double = 1e-7, maxIter: Int = 1000): Option[Double] = {
     def iter(xi: Double, iterCount: Int): Option[Double] = {
-      val fxi = eval(expr, Map(variable -> xi))
-      if (Math.abs(fxi) < tolerance) {
-        Some(xi)
-      } else if (iterCount >= maxIter) {
-        None
+      val fxi = eval(expr, Map(variable -> xi)) // Evalúa la función en xi
+      if (Math.abs(fxi) < tolerance) { // Comprueba si estamos cerca de la raíz
+        Some(xi) // Si sí, devuelve la raíz encontrada
+      } else if (iterCount >= maxIter) { // Comprueba si hemos alcanzado el número máximo de iteraciones
+        None // Si sí, devuelve None indicando que no se encontró la raíz en las iteraciones permitidas
       } else {
-        val dfxi = eval(derive(expr, variable), Map(variable -> xi))
+        val dfxi = eval(derive(expr, variable), Map(variable -> xi)) // Calcula la derivada en xi
         if (dfxi == 0) {
-          None
+          None // Si la derivada es cero, el método no converge
         } else {
-          val xi1 = xi - fxi / dfxi
-          iter(xi1, iterCount + 1)
+          val xi1 = xi - fxi / dfxi // Calcula el siguiente punto según el método de Newton
+          iter(xi1, iterCount + 1) // Llama recursivamente a iter con el nuevo punto y el contador de iteraciones incrementado
         }
       }
     }
-    iter(x0, 0)
-  }
-}
+
+    iter(x0, 0) // Inicia el proceso de iteraciones con la aproximación inicial x0
+  } }
+

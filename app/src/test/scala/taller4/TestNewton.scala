@@ -18,10 +18,10 @@ class TestNewton extends AnyFunSuite {
     test ("encontrar la raíz de una función cuadrática")  {
       val expr = Resta(Prod(Atomo('x'), Atomo('x')), Numero(4.0))  // f(x) = x^2 - 4
       val root = newtonSolu.newton(expr, 'x', 3.0)
-      assert(root.contains(2.0), "Raíz esperada para la función cuadrática no encontrada")
+      assert(math.abs(root.getOrElse(0.0) - 2.0) < 1e-6 , "Raíz esperada para la función cuadrática no encontrada")
     }
 
-    test ("encontrar la raíz de una función más compleja")  {
+  test ("encontrar la raíz de una función más compleja")  {
       val expr = Suma(
         Prod(Numero(5.0), Atomo('k')),
         Div(Logaritmo(Numero(3.0)), Expo(Resta(Numero(8.0), Atomo('x')), Atomo('x')))
