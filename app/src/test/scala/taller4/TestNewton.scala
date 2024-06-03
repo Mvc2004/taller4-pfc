@@ -1,43 +1,44 @@
 package taller4
 
-import org.scalatest.flatspec.AnyFlatSpec
-import org.scalatest.matchers.should.Matchers
+import org.scalatest.funsuite.AnyFunSuite
+import org.junit.runner.RunWith
+import org.scalatestplus.junit.JUnitRunner
 
-class NewtonSpec extends AnyFlatSpec with Matchers {
+@RunWith(classOf[JUnitRunner])
+class TestNewton extends AnyFunSuite {
+  val newtonSolu = new Newton()
 
-  val newtonSolver = new Newton()
 
-  "Newton's method" should "find the root of a simple linear function" in {
-    val expr = Resta(Atomo('x'), Numero(5.0))  // f(x) = x - 5
-    val root = newtonSolver.newton(expr, 'x', 0.0)
-    root shouldBe Some(5.0)
+    test ("encontrar la raíz de una función lineal simple")  {
+      val expr = Resta(Atomo('x'), Numero(5.0))
+      val root = newtonSolu.newton(expr, 'x', 0.0)
+      assert(root.contains(5.0), "Raíz esperada para la función lineal no encontrada")
+    }
+
+    test ("encontrar la raíz de una función cuadrática")  {
+      val expr = Resta(Prod(Atomo('x'), Atomo('x')), Numero(4.0))  // f(x) = x^2 - 4
+      val root = newtonSolu.newton(expr, 'x', 3.0)
+      assert(root.contains(2.0), "Raíz esperada para la función cuadrática no encontrada")
+    }
+
+    test ("encontrar la raíz de una función más compleja")  {
+      val expr = Suma(
+        Prod(Numero(5.0), Atomo('k')),
+        Div(Logaritmo(Numero(3.0)), Expo(Resta(Numero(8.0), Atomo('x')), Atomo('x')))
+      )
+      val root = newtonSolu.newton(expr, 'x', 1.0)
+      assert(root.isDefined, "Raíz esperada para la función compleja no encontrada")
+    }
+
+    test ("devolver None si no se encuentra raíz dentro del número máximo de iteraciones")  {
+      val expr = Resta(Prod(Atomo('x'), Atomo('x')), Numero(-4.0))  // f(x) = x^2 + 4
+      val root = newtonSolu.newton(expr, 'x', 0.0, maxIter = 10)
+      assert(root.isEmpty, "Se encontró una raíz cuando no se esperaba debido al máximo de iteraciones")
+    }
+
+   test ("manejar una derivada cero correctamente")  {
+      val expr = Numero(1.0)  // f(x) = 1
+      val root = newtonSolu.newton(expr, 'x', 0.0)
+      assert(root.isEmpty, "Se encontró una raíz cuando no se esperaba debido a la derivada cero")
+    }
   }
-
-  it should "find the root of a quadratic function" in {
-    val expr = Resta(Prod(Atomo('x'), Atomo('x')), Numero(4.0))  // f(x) = x^2 - 4
-    val root = newtonSolver.newton(expr, 'x', 3.0)
-    root shouldBe Some(2.0)
-  }
-
-  it should "find the root of a more complex function" in {
-    val expr = Suma(
-      Prod(Numero(5.0), Atomo('k')),
-      Div(Logaritmo(Numero(3.0)), Expo(Resta(Numero(8.0), Atomo('x')), Atomo('x')))
-    )
-    val root = newtonSolver.newton(expr, 'x', 1.0)
-    root should not be empty  // This is a more complex function, ensure it finds some root
-  }
-
-  it should "return None if no root is found within the maximum number of iterations" in {
-    val expr = Resta(Prod(Atomo('x'), Atomo('x')), Numero(-4.0))  // f(x) = x^2 + 4
-    val root = newtonSolver.newton(expr, 'x', 0.0, maxIter = 10)
-    root shouldBe None
-  }
-
-  it should "handle a zero derivative gracefully" in {
-    val expr = Numero(1.0)  // f(x) = 1
-    val root = newtonSolver.newton(expr, 'x', 0.0)
-    root shouldBe None  // The derivative is zero, should return None
-  }
-}
-
