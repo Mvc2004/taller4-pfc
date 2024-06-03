@@ -1,3 +1,4 @@
-# Repositorio base
+# taller 4 - pfc
 
-Este repositorio tiene las configuraciones y librerías necesarias para trabajar concurrencia
+Merly Velasquez Cortez - 2266016
+Sofia Castillo Giraldo - 2266128
